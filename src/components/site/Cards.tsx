@@ -2,7 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Clock, MapPin, Star, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { formatPrice, type Destination, type SafariPackage } from "@/data/site";
+import { formatPrice } from "@/data/site";
+import type { Destination, SafariPackage } from "@/lib/content-types";
 
 export function DestinationCard({ destination }: { destination: Destination }) {
   return (

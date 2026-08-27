@@ -3,7 +3,7 @@ import { Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { company, destinations } from "@/data/site";
+import { company, destinationLinks } from "@/data/site";
 import logoWordmark from "@/assets/logo-wordmark.png.asset.json";
 
 export function Footer() {
@@ -44,7 +44,7 @@ export function Footer() {
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">Destinations</h3>
           <ul className="mt-5 space-y-2.5 text-sm text-ink-foreground/75">
-            {destinations.map((d) => (
+            {destinationLinks.map((d) => (
               <li key={d.slug}>
                 <Link to="/destinations/$slug" params={{ slug: d.slug }} className="hover:text-accent">
                   {d.name}

@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/site/Section";
-import { activities, getDestination } from "@/data/site";
+import { siteContentQueryOptions } from "@/lib/content-query";
 import heroImage from "@/assets/dest-uganda.jpg";
 
 export const Route = createFileRoute("/activities")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(siteContentQueryOptions),
   head: () => ({
     meta: [
       { title: "Safari Activities & Experiences — Berakah Tours & Travel" },
@@ -22,9 +24,20 @@ export const Route = createFileRoute("/activities")({
     links: [{ rel: "canonical", href: "/activities" }],
   }),
   component: ActivitiesPage,
+  errorComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">
+      Something went wrong loading activities. Please try again.
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">Page not found.</div>
+  ),
 });
 
 function ActivitiesPage() {
+  const { data } = useSuspenseQuery(siteContentQueryOptions);
+  const { activities, destinations } = data;
+
   return (
     <>
       <PageHero
@@ -41,7 +54,7 @@ function ActivitiesPage() {
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{a.blurb}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {a.destinations.map((slug) => {
-                  const d = getDestination(slug);
+                  const d = destinations.find((dest) => dest.slug === slug);
                   if (!d) return null;
                   return (
                     <Link key={slug} to="/destinations/$slug" params={{ slug }}>

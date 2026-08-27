@@ -1,14 +1,17 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Check, Clock, MapPin, Users, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/site/Section";
-import { formatPrice, getDestination, getPackage } from "@/data/site";
+import { formatPrice } from "@/data/site";
+import { siteContentQueryOptions } from "@/lib/content-query";
 
 export const Route = createFileRoute("/safaris/$slug")({
-  loader: ({ params }) => {
-    const pkg = getPackage(params.slug);
+  loader: async ({ context, params }) => {
+    const data = await context.queryClient.ensureQueryData(siteContentQueryOptions);
+    const pkg = data.packages.find((p) => p.slug === params.slug);
     if (!pkg) throw notFound();
     return { pkg };
   },
@@ -48,11 +51,22 @@ export const Route = createFileRoute("/safaris/$slug")({
     };
   },
   component: PackageDetail,
+  errorComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">
+      Something went wrong loading this safari. Please try again.
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">Safari not found.</div>
+  ),
 });
 
 function PackageDetail() {
   const { pkg } = Route.useLoaderData();
-  const dests = pkg.destinationSlugs.map(getDestination).filter(Boolean);
+  const { data } = useSuspenseQuery(siteContentQueryOptions);
+  const dests = pkg.destinationSlugs
+    .map((slug) => data.destinations.find((d) => d.slug === slug))
+    .filter((d): d is NonNullable<typeof d> => Boolean(d));
 
   return (
     <>
@@ -66,7 +80,7 @@ function PackageDetail() {
           </span>
           <span className="flex items-center gap-2">
             <MapPin className="size-4 text-accent" />
-            {dests.map((d) => d!.name).join(" · ")}
+            {dests.map((d) => d.name).join(" · ")}
           </span>
         </div>
       </PageHero>
@@ -177,9 +191,9 @@ function PackageDetail() {
 
             <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-5">
               {dests.map((d) => (
-                <Badge key={d!.slug} variant="secondary" className="font-normal">
-                  <Link to="/destinations/$slug" params={{ slug: d!.slug }}>
-                    {d!.name}
+                <Badge key={d.slug} variant="secondary" className="font-normal">
+                  <Link to="/destinations/$slug" params={{ slug: d.slug }}>
+                    {d.name}
                   </Link>
                 </Badge>
               ))}

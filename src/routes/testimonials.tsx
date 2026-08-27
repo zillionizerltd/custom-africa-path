@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { TestimonialCard } from "@/components/site/Cards";
 import { PageHero } from "@/components/site/Section";
-import { testimonials } from "@/data/site";
+import { siteContentQueryOptions } from "@/lib/content-query";
 import heroImage from "@/assets/dest-zanzibar.jpg";
 
 export const Route = createFileRoute("/testimonials")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(siteContentQueryOptions),
   head: () => ({
     meta: [
       { title: "Guest Reviews & Testimonials — Berakah Tours & Travel" },
@@ -22,9 +24,19 @@ export const Route = createFileRoute("/testimonials")({
     links: [{ rel: "canonical", href: "/testimonials" }],
   }),
   component: TestimonialsPage,
+  errorComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">
+      Something went wrong loading testimonials. Please try again.
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">Page not found.</div>
+  ),
 });
 
 function TestimonialsPage() {
+  const { data } = useSuspenseQuery(siteContentQueryOptions);
+
   return (
     <>
       <PageHero
@@ -35,7 +47,7 @@ function TestimonialsPage() {
       />
       <section className="container-page py-16">
         <div className="grid gap-5 md:grid-cols-2">
-          {testimonials.map((t) => (
+          {data.testimonials.map((t) => (
             <TestimonialCard key={t.name} testimonial={t} />
           ))}
         </div>

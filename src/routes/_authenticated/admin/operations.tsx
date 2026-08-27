@@ -91,8 +91,8 @@ function AdminOperations() {
     mutationFn: async () => {
       const { error } = await supabase.from("accommodations").insert({
         name: lodge.name,
-        destination_slug: lodge.destination_slug || null,
-        level: lodge.level || null,
+        destination_slug: lodge.destination_slug,
+        level: lodge.level || "mid-range",
       });
       if (error) throw error;
     },

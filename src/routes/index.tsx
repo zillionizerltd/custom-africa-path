@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   BadgeCheck,
@@ -23,11 +24,12 @@ import {
 } from "@/components/ui/select";
 import { DestinationCard, PackageCard, TestimonialCard } from "@/components/site/Cards";
 import { SectionHeading } from "@/components/site/Section";
-import { activities, blogPosts, destinations, packages, testimonials } from "@/data/site";
+import { siteContentQueryOptions } from "@/lib/content-query";
 import heroImage from "@/assets/hero-gorilla.jpg";
 import ctaImage from "@/assets/cta-safari.jpg";
 
 export const Route = createFileRoute("/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(siteContentQueryOptions),
   head: () => ({
     meta: [
       { title: "Berakah Tours & Travel — Your Safari, Your Way" },
@@ -46,6 +48,14 @@ export const Route = createFileRoute("/")({
     links: [{ rel: "canonical", href: "/" }],
   }),
   component: HomePage,
+  errorComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">
+      Something went wrong loading this page. Please try again.
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">Page not found.</div>
+  ),
 });
 
 const steps = [
@@ -63,6 +73,8 @@ const reasons = [
 ];
 
 function HomePage() {
+  const { data } = useSuspenseQuery(siteContentQueryOptions);
+  const { destinations, packages, activities, posts: blogPosts, testimonials } = data;
   const [query, setQuery] = useState("");
   const [destination, setDestination] = useState("all");
   const featured = packages.filter((p) => p.featured);

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { CalendarRange, Clock, MapPin } from "lucide-react";
 
 import {
@@ -11,11 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PackageCard } from "@/components/site/Cards";
 import { PageHero, SectionHeading } from "@/components/site/Section";
-import { getDestination, packages } from "@/data/site";
+import { siteContentQueryOptions } from "@/lib/content-query";
 
 export const Route = createFileRoute("/destinations/$slug")({
-  loader: ({ params }) => {
-    const destination = getDestination(params.slug);
+  loader: async ({ context, params }) => {
+    const data = await context.queryClient.ensureQueryData(siteContentQueryOptions);
+    const destination = data.destinations.find((d) => d.slug === params.slug);
     if (!destination) throw notFound();
     return { destination };
   },
@@ -38,11 +40,20 @@ export const Route = createFileRoute("/destinations/$slug")({
     };
   },
   component: DestinationDetail,
+  errorComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">
+      Something went wrong loading this destination. Please try again.
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">Destination not found.</div>
+  ),
 });
 
 function DestinationDetail() {
   const { destination: d } = Route.useLoaderData();
-  const related = packages.filter((p) => p.destinationSlugs.includes(d.slug));
+  const { data } = useSuspenseQuery(siteContentQueryOptions);
+  const related = data.packages.filter((p) => p.destinationSlugs.includes(d.slug));
 
   return (
     <>
