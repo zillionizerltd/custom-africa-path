@@ -47,10 +47,11 @@ export const Route = createFileRoute("/safaris/")({
 
 function SafarisPage() {
   const search = Route.useSearch();
-  const navigate = useNavigate({ from: "/safaris" });
+  const navigate = useNavigate({ from: "/safaris/" });
 
-  const setSearch = (next: Partial<SafariSearch>) =>
-    navigate({ search: (prev) => ({ ...prev, ...next }) });
+  const setSearch = (next: SafariSearch) =>
+    navigate({ search: { ...search, ...next } as SafariSearch });
+
 
   const q = (search.q ?? "").toLowerCase();
   const results = packages.filter((p) => {
