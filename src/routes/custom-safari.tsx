@@ -13,7 +13,7 @@ import { PageHero } from "@/components/site/Section";
 import {
   accommodationLevels,
   budgetRanges,
-  destinations,
+  destinationLinks,
   interestOptions,
   transportOptions,
 } from "@/data/site";
@@ -359,7 +359,7 @@ function CustomSafariPage() {
 
             {step === 7 ? (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {destinations.map((d) => (
+                {destinationLinks.map((d) => (
                   <ChoiceChip
                     key={d.slug}
                     label={d.name}
