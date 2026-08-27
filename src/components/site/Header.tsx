@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, Phone, X } from "lucide-react";
+import { Menu, Phone, User, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { company } from "@/data/site";
+import { useAuth, homeForRoles } from "@/hooks/useAuth";
 import logoMark from "@/assets/logo-mark.png.asset.json";
 import logoWordmark from "@/assets/logo-wordmark.png.asset.json";
 
@@ -18,6 +19,9 @@ const nav = [
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const { user, roles } = useAuth();
+  const accountTo = user ? homeForRoles(roles) : "/auth";
+  const accountLabel = user ? "My account" : "Sign in";
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md">
@@ -53,6 +57,12 @@ export function Header() {
             <Phone className="size-4" />
             {company.phone}
           </a>
+          <Button asChild variant="outline">
+            <Link to={accountTo}>
+              <User className="size-4" />
+              {accountLabel}
+            </Link>
+          </Button>
           <Button asChild variant="gold">
             <Link to="/custom-safari">Plan My Safari</Link>
           </Button>
@@ -81,6 +91,13 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
+            <Link
+              to={accountTo}
+              onClick={() => setOpen(false)}
+              className="border-b border-border/60 py-3 text-sm font-medium"
+            >
+              {accountLabel}
+            </Link>
             <Button asChild variant="gold" className="mt-4">
               <Link to="/custom-safari" onClick={() => setOpen(false)}>
                 Plan My Safari
