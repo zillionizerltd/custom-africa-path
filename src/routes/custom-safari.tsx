@@ -128,6 +128,8 @@ function CustomSafariPage() {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(initial);
   const [submitted, setSubmitted] = useState(false);
+  const [reference, setReference] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -142,7 +144,34 @@ function CustomSafariPage() {
     return true;
   };
 
-  const submit = () => {
+  const submit = async () => {
+    setSaving(true);
+    const ref = makeReference("BT");
+    const { data: auth } = await supabase.auth.getUser();
+    const { error } = await supabase.from("safari_requests").insert({
+      reference: ref,
+      user_id: auth.user?.id ?? null,
+      full_name: form.name,
+      email: form.email,
+      phone: form.phone || null,
+      country: form.country || null,
+      destination_slugs: form.destinations.map((d) => d.toLowerCase()),
+      start_date: form.arrival || null,
+      end_date: form.departure || null,
+      adults: form.adults,
+      children: form.children + form.infants,
+      budget_range: form.budget || null,
+      accommodation_level: form.accommodation || null,
+      transport: form.transport,
+      interests: form.interests,
+      notes: form.notes || null,
+    });
+    setSaving(false);
+    if (error) {
+      toast.error("We couldn't submit your request. Please try again.");
+      return;
+    }
+    setReference(ref);
     setSubmitted(true);
     toast.success("Safari request received", {
       description: "A consultant will reply with a costed itinerary within 24 hours.",
@@ -150,7 +179,6 @@ function CustomSafariPage() {
   };
 
   if (submitted) {
-    const reference = `BT-${String(Math.floor(100000 + Math.random() * 899999))}`;
     return (
       <>
         <PageHero eyebrow="Request received" title="We're on it." image={heroImage} />
