@@ -1,12 +1,14 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/site/Section";
-import { blogPosts, getPost } from "@/data/site";
+import { siteContentQueryOptions } from "@/lib/content-query";
 
 export const Route = createFileRoute("/blog/$slug")({
-  loader: ({ params }) => {
-    const post = getPost(params.slug);
+  loader: async ({ context, params }) => {
+    const data = await context.queryClient.ensureQueryData(siteContentQueryOptions);
+    const post = data.posts.find((p) => p.slug === params.slug);
     if (!post) throw notFound();
     return { post };
   },
@@ -41,11 +43,20 @@ export const Route = createFileRoute("/blog/$slug")({
     };
   },
   component: BlogPost,
+  errorComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">
+      Something went wrong loading this article. Please try again.
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">Article not found.</div>
+  ),
 });
 
 function BlogPost() {
   const { post } = Route.useLoaderData();
-  const more = blogPosts.filter((p) => p.slug !== post.slug).slice(0, 2);
+  const { data } = useSuspenseQuery(siteContentQueryOptions);
+  const more = data.posts.filter((p) => p.slug !== post.slug).slice(0, 2);
 
   return (
     <>

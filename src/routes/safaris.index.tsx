@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,8 @@ import {
 } from "@/components/ui/select";
 import { PackageCard } from "@/components/site/Cards";
 import { PageHero } from "@/components/site/Section";
-import { categories, destinations, packages } from "@/data/site";
+import { categories } from "@/data/site";
+import { siteContentQueryOptions } from "@/lib/content-query";
 import heroImage from "@/assets/dest-tanzania.jpg";
 
 type SafariSearch = {
@@ -27,6 +29,8 @@ export const Route = createFileRoute("/safaris/")({
     destination: typeof search["destination"] === "string" ? search["destination"] : undefined,
     category: typeof search["category"] === "string" ? search["category"] : undefined,
   }),
+
+  loader: ({ context }) => context.queryClient.ensureQueryData(siteContentQueryOptions),
 
   head: () => ({
     meta: [
@@ -43,11 +47,21 @@ export const Route = createFileRoute("/safaris/")({
     links: [{ rel: "canonical", href: "/safaris" }],
   }),
   component: SafarisPage,
+  errorComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">
+      Something went wrong loading safaris. Please try again.
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">Page not found.</div>
+  ),
 });
 
 function SafarisPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/safaris/" });
+  const { data } = useSuspenseQuery(siteContentQueryOptions);
+  const { destinations, packages } = data;
 
   const setSearch = (next: SafariSearch) =>
     navigate({ search: { ...search, ...next } as SafariSearch });

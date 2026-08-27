@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { DestinationCard } from "@/components/site/Cards";
 import { PageHero } from "@/components/site/Section";
-import { destinations } from "@/data/site";
+import { siteContentQueryOptions } from "@/lib/content-query";
 import heroImage from "@/assets/dest-kenya.jpg";
 
 export const Route = createFileRoute("/destinations/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(siteContentQueryOptions),
   head: () => ({
     meta: [
       { title: "African Safari Destinations — Berakah Tours & Travel" },
@@ -24,9 +26,18 @@ export const Route = createFileRoute("/destinations/")({
     links: [{ rel: "canonical", href: "/destinations" }],
   }),
   component: DestinationsPage,
+  errorComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">
+      Something went wrong loading destinations. Please try again.
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">Page not found.</div>
+  ),
 });
 
 function DestinationsPage() {
+  const { data } = useSuspenseQuery(siteContentQueryOptions);
   return (
     <>
       <PageHero
@@ -37,7 +48,7 @@ function DestinationsPage() {
       />
       <section className="container-page py-16">
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {destinations.map((d) => (
+          {data.destinations.map((d) => (
             <DestinationCard key={d.slug} destination={d} />
           ))}
         </div>

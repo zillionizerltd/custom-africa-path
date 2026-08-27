@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { PageHero } from "@/components/site/Section";
-import { blogPosts } from "@/data/site";
+import { siteContentQueryOptions } from "@/lib/content-query";
 import heroImage from "@/assets/dest-rwanda.jpg";
 
 export const Route = createFileRoute("/blog/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(siteContentQueryOptions),
   head: () => ({
     meta: [
       { title: "Travel Blog — African Safari Guides & Tips | Berakah Tours" },
@@ -20,9 +22,19 @@ export const Route = createFileRoute("/blog/")({
     links: [{ rel: "canonical", href: "/blog" }],
   }),
   component: BlogIndex,
+  errorComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">
+      Something went wrong loading the blog. Please try again.
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="container-page py-20 text-center text-muted-foreground">Page not found.</div>
+  ),
 });
 
 function BlogIndex() {
+  const { data } = useSuspenseQuery(siteContentQueryOptions);
+
   return (
     <>
       <PageHero
@@ -33,7 +45,7 @@ function BlogIndex() {
       />
       <section className="container-page py-16">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {blogPosts.map((post) => (
+          {data.posts.map((post) => (
             <Link
               key={post.slug}
               to="/blog/$slug"
