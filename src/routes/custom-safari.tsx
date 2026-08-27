@@ -18,6 +18,8 @@ import {
   transportOptions,
 } from "@/data/site";
 import { cn } from "@/lib/utils";
+import { makeReference } from "@/lib/reference";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/cta-safari.jpg";
 
 export const Route = createFileRoute("/custom-safari")({
@@ -392,7 +394,7 @@ function CustomSafariPage() {
                 Continue <ArrowRight className="size-4" />
               </Button>
             ) : (
-              <Button variant="hero" size="xl" onClick={submit}>
+              <Button variant="hero" size="xl" onClick={() => void submit()} disabled={saving}>
                 Request My Safari
               </Button>
             )}
