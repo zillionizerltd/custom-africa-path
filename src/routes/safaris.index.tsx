@@ -121,7 +121,7 @@ function SafarisPage() {
           <Button
             variant="ghost"
             className="h-11"
-            onClick={() => navigate({ search: {} })}
+            onClick={() => navigate({ search: {} as SafariSearch })}
           >
             Reset
           </Button>
