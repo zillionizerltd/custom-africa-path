@@ -10,33 +10,89 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DestinationsIndexRouteImport } from './routes/destinations.index'
+import { Route as DestinationsSlugRouteImport } from './routes/destinations.$slug'
+import { Route as SafarisIndexRouteImport } from './routes/safaris.index'
+import { Route as SafarisSlugRouteImport } from './routes/safaris.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DestinationsIndexRoute = DestinationsIndexRouteImport.update({
+  id: '/destinations/',
+  path: '/destinations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DestinationsSlugRoute = DestinationsSlugRouteImport.update({
+  id: '/destinations/$slug',
+  path: '/destinations/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafarisIndexRoute = SafarisIndexRouteImport.update({
+  id: '/safaris/',
+  path: '/safaris/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SafarisSlugRoute = SafarisSlugRouteImport.update({
+  id: '/safaris/$slug',
+  path: '/safaris/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/destinations/$slug': typeof DestinationsSlugRoute
+  '/safaris/$slug': typeof SafarisSlugRoute
+  '/destinations/': typeof DestinationsIndexRoute
+  '/safaris/': typeof SafarisIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/destinations/$slug': typeof DestinationsSlugRoute
+  '/safaris/$slug': typeof SafarisSlugRoute
+  '/destinations': typeof DestinationsIndexRoute
+  '/safaris': typeof SafarisIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/destinations/$slug': typeof DestinationsSlugRoute
+  '/safaris/$slug': typeof SafarisSlugRoute
+  '/destinations/': typeof DestinationsIndexRoute
+  '/safaris/': typeof SafarisIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/destinations/$slug'
+    | '/safaris/$slug'
+    | '/destinations/'
+    | '/safaris/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/destinations/$slug'
+    | '/safaris/$slug'
+    | '/destinations'
+    | '/safaris'
+  id:
+    | '__root__'
+    | '/'
+    | '/destinations/$slug'
+    | '/safaris/$slug'
+    | '/destinations/'
+    | '/safaris/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DestinationsSlugRoute: typeof DestinationsSlugRoute
+  SafarisSlugRoute: typeof SafarisSlugRoute
+  DestinationsIndexRoute: typeof DestinationsIndexRoute
+  SafarisIndexRoute: typeof SafarisIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +104,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/destinations/': {
+      id: '/destinations/'
+      path: '/destinations'
+      fullPath: '/destinations/'
+      preLoaderRoute: typeof DestinationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/destinations/$slug': {
+      id: '/destinations/$slug'
+      path: '/destinations/$slug'
+      fullPath: '/destinations/$slug'
+      preLoaderRoute: typeof DestinationsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safaris/': {
+      id: '/safaris/'
+      path: '/safaris'
+      fullPath: '/safaris/'
+      preLoaderRoute: typeof SafarisIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/safaris/$slug': {
+      id: '/safaris/$slug'
+      path: '/safaris/$slug'
+      fullPath: '/safaris/$slug'
+      preLoaderRoute: typeof SafarisSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DestinationsSlugRoute: DestinationsSlugRoute,
+  SafarisSlugRoute: SafarisSlugRoute,
+  DestinationsIndexRoute: DestinationsIndexRoute,
+  SafarisIndexRoute: SafarisIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
