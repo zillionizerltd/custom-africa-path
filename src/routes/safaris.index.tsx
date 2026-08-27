@@ -15,14 +15,19 @@ import { PageHero } from "@/components/site/Section";
 import { categories, destinations, packages } from "@/data/site";
 import heroImage from "@/assets/dest-tanzania.jpg";
 
-type SafariSearch = { q?: string; destination?: string; category?: string };
+type SafariSearch = {
+  q?: string | undefined;
+  destination?: string | undefined;
+  category?: string | undefined;
+};
 
 export const Route = createFileRoute("/safaris/")({
   validateSearch: (search: Record<string, unknown>): SafariSearch => ({
-    q: typeof search.q === "string" && search.q ? search.q : undefined,
-    destination: typeof search.destination === "string" ? search.destination : undefined,
-    category: typeof search.category === "string" ? search.category : undefined,
+    q: typeof search["q"] === "string" && search["q"] ? search["q"] : undefined,
+    destination: typeof search["destination"] === "string" ? search["destination"] : undefined,
+    category: typeof search["category"] === "string" ? search["category"] : undefined,
   }),
+
   head: () => ({
     meta: [
       { title: "Safari Packages & Tours — Berakah Tours & Travel" },
@@ -42,10 +47,11 @@ export const Route = createFileRoute("/safaris/")({
 
 function SafarisPage() {
   const search = Route.useSearch();
-  const navigate = useNavigate({ from: "/safaris" });
+  const navigate = useNavigate({ from: "/safaris/" });
 
-  const setSearch = (next: Partial<SafariSearch>) =>
-    navigate({ search: (prev) => ({ ...prev, ...next }) });
+  const setSearch = (next: SafariSearch) =>
+    navigate({ search: { ...search, ...next } as SafariSearch });
+
 
   const q = (search.q ?? "").toLowerCase();
   const results = packages.filter((p) => {
@@ -115,7 +121,7 @@ function SafarisPage() {
           <Button
             variant="ghost"
             className="h-11"
-            onClick={() => navigate({ search: {} })}
+            onClick={() => navigate({ search: {} as SafariSearch })}
           >
             Reset
           </Button>
