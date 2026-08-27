@@ -128,8 +128,14 @@ function HomePage() {
           <Button asChild variant="gold" size="lg" className="h-11">
             <Link
               to="/safaris"
-              search={{ q: query || undefined, destination: destination !== "all" ? destination : undefined }}
+              search={
+                {
+                  ...(query ? { q: query } : {}),
+                  ...(destination !== "all" ? { destination } : {}),
+                } as { q?: string | undefined; destination?: string | undefined }
+              }
             >
+
               Search safaris
             </Link>
           </Button>
