@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as ActivitiesRouteImport } from './routes/activities'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CustomSafariRouteImport } from './routes/custom-safari'
 import { Route as FaqRouteImport } from './routes/faq'
@@ -38,6 +39,11 @@ const AboutRoute = AboutRouteImport.update({
 const ActivitiesRoute = ActivitiesRouteImport.update({
   id: '/activities',
   path: '/activities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/activities': typeof ActivitiesRoute
+  '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/custom-safari': typeof CustomSafariRoute
   '/faq': typeof FaqRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/activities': typeof ActivitiesRoute
+  '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/custom-safari': typeof CustomSafariRoute
   '/faq': typeof FaqRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/activities': typeof ActivitiesRoute
+  '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/custom-safari': typeof CustomSafariRoute
   '/faq': typeof FaqRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/activities'
+    | '/auth'
     | '/contact'
     | '/custom-safari'
     | '/faq'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/activities'
+    | '/auth'
     | '/contact'
     | '/custom-safari'
     | '/faq'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/activities'
+    | '/auth'
     | '/contact'
     | '/custom-safari'
     | '/faq'
@@ -211,6 +223,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   ActivitiesRoute: typeof ActivitiesRoute
+  AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   CustomSafariRoute: typeof CustomSafariRoute
   FaqRoute: typeof FaqRoute
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/activities'
       fullPath: '/activities'
       preLoaderRoute: typeof ActivitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -339,6 +359,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   ActivitiesRoute: ActivitiesRoute,
+  AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   CustomSafariRoute: CustomSafariRoute,
   FaqRoute: FaqRoute,
