@@ -44,7 +44,7 @@ function AdminContent() {
     }: {
       table: ContentTable;
       id: string;
-      values: Record<string, boolean>;
+      values: { published: boolean };
     }) => {
       const { error } = await supabase.from(table).update(values).eq("id", id);
       if (error) throw error;
