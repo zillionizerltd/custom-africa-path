@@ -30,6 +30,7 @@ import { Route as DestinationsSlugRouteImport } from './routes/destinations.$slu
 import { Route as SafarisIndexRouteImport } from './routes/safaris.index'
 import { Route as SafarisSlugRouteImport } from './routes/safaris.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin/bookings'
 import { Route as AuthenticatedAdminQuotesRouteImport } from './routes/_authenticated/admin/quotes'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin/requests'
 
@@ -137,6 +138,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminBookingsRoute =
+  AuthenticatedAdminBookingsRouteImport.update({
+    id: '/bookings',
+    path: '/bookings',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminQuotesRoute =
   AuthenticatedAdminQuotesRouteImport.update({
     id: '/quotes',
@@ -170,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/blog/': typeof BlogIndexRoute
   '/destinations/': typeof DestinationsIndexRoute
   '/safaris/': typeof SafarisIndexRoute
+  '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/admin/quotes': typeof AuthenticatedAdminQuotesRoute
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -193,6 +201,7 @@ export interface FileRoutesByTo {
   '/blog': typeof BlogIndexRoute
   '/destinations': typeof DestinationsIndexRoute
   '/safaris': typeof SafarisIndexRoute
+  '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/admin/quotes': typeof AuthenticatedAdminQuotesRoute
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -219,6 +228,7 @@ export interface FileRoutesById {
   '/blog/': typeof BlogIndexRoute
   '/destinations/': typeof DestinationsIndexRoute
   '/safaris/': typeof SafarisIndexRoute
+  '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/_authenticated/admin/quotes': typeof AuthenticatedAdminQuotesRoute
   '/_authenticated/admin/requests': typeof AuthenticatedAdminRequestsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -245,6 +255,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/destinations/'
     | '/safaris/'
+    | '/admin/bookings'
     | '/admin/quotes'
     | '/admin/requests'
     | '/admin/'
@@ -268,6 +279,7 @@ export interface FileRouteTypes {
     | '/blog'
     | '/destinations'
     | '/safaris'
+    | '/admin/bookings'
     | '/admin/quotes'
     | '/admin/requests'
     | '/admin'
@@ -293,6 +305,7 @@ export interface FileRouteTypes {
     | '/blog/'
     | '/destinations/'
     | '/safaris/'
+    | '/_authenticated/admin/bookings'
     | '/_authenticated/admin/quotes'
     | '/_authenticated/admin/requests'
     | '/_authenticated/admin/'
@@ -467,6 +480,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/bookings': {
+      id: '/_authenticated/admin/bookings'
+      path: '/bookings'
+      fullPath: '/admin/bookings'
+      preLoaderRoute: typeof AuthenticatedAdminBookingsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/quotes': {
       id: '/_authenticated/admin/quotes'
       path: '/quotes'
@@ -485,6 +505,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteRouteChildren {
+  AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRoute
   AuthenticatedAdminQuotesRoute: typeof AuthenticatedAdminQuotesRoute
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -492,6 +513,7 @@ interface AuthenticatedAdminRouteRouteChildren {
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
+    AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRoute,
     AuthenticatedAdminQuotesRoute: AuthenticatedAdminQuotesRoute,
     AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
