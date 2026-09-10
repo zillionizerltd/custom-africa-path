@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { DashboardShell, EmptyState, Panel, StatusBadge, shortDate } from "@/components/dashboard/Shell";
+import { DashboardShell, EmptyState, Panel, StatusBadge } from "@/components/dashboard/Shell";
+import { shortDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/guide")({
   component: GuidePortal,
@@ -69,19 +70,30 @@ function GuidePortal() {
                     {a.bookings?.travelers ?? "?"} travellers · Lead: {a.bookings?.lead_name ?? "—"}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Vehicle: {a.vehicles ? `${a.vehicles.name} (${a.vehicles.vehicle_type})` : "Not assigned"}
+                    Vehicle:{" "}
+                    {a.vehicles
+                      ? `${a.vehicles.name} (${a.vehicles.vehicle_type})`
+                      : "Not assigned"}
                   </p>
                   {a.notes ? <p className="mt-1 text-sm text-muted-foreground">{a.notes}</p> : null}
                 </div>
                 <div className="flex items-center gap-2">
                   <StatusBadge status={a.status} />
                   {a.status === "scheduled" ? (
-                    <Button size="sm" variant="gold" onClick={() => setStatus.mutate({ id: a.id, status: "in_progress" })}>
+                    <Button
+                      size="sm"
+                      variant="gold"
+                      onClick={() => setStatus.mutate({ id: a.id, status: "in_progress" })}
+                    >
                       Start trip
                     </Button>
                   ) : null}
                   {a.status === "in_progress" ? (
-                    <Button size="sm" variant="gold" onClick={() => setStatus.mutate({ id: a.id, status: "completed" })}>
+                    <Button
+                      size="sm"
+                      variant="gold"
+                      onClick={() => setStatus.mutate({ id: a.id, status: "completed" })}
+                    >
                       Mark complete
                     </Button>
                   ) : null}

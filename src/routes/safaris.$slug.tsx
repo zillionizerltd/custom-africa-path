@@ -3,9 +3,9 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Check, Clock, MapPin, Users, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { PageHero } from "@/components/site/Section";
-import { formatPrice } from "@/data/site";
+import { PackageCard } from "@/components/site/Cards";
+import { PageHero, SectionHeading } from "@/components/site/Section";
+import { TripCostCalculator } from "@/components/site/TripCostCalculator";
 import { siteContentQueryOptions } from "@/lib/content-query";
 
 export const Route = createFileRoute("/safaris/$slug")({
@@ -67,6 +67,12 @@ function PackageDetail() {
   const dests = pkg.destinationSlugs
     .map((slug) => data.destinations.find((d) => d.slug === slug))
     .filter((d): d is NonNullable<typeof d> => Boolean(d));
+  const related = data.packages
+    .filter(
+      (p) =>
+        p.slug !== pkg.slug && p.destinationSlugs.some((s) => pkg.destinationSlugs.includes(s)),
+    )
+    .slice(0, 3);
 
   return (
     <>
@@ -153,18 +159,17 @@ function PackageDetail() {
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{pkg.cancellation}</p>
         </div>
 
-        <aside className="lg:sticky lg:top-24 lg:h-fit">
-          <div className="rounded-xl border border-border bg-card p-6 shadow-soft">
-            <p className="text-sm text-muted-foreground">From</p>
-            <p className="font-display text-4xl font-semibold">
-              {formatPrice(pkg.priceFrom, pkg.currency)}
-            </p>
-            <p className="text-sm text-muted-foreground">per person sharing</p>
+        <aside className="space-y-5">
+          <TripCostCalculator pkg={pkg} />
 
-            <dl className="mt-6 space-y-3 border-t border-border pt-5 text-sm">
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="text-lg">Trip facts</h2>
+            <dl className="mt-4 space-y-3 text-sm">
               <div className="flex justify-between gap-4">
                 <dt className="text-muted-foreground">Duration</dt>
-                <dd className="text-right">{pkg.days} days</dd>
+                <dd className="text-right">
+                  {pkg.days} days / {pkg.nights} nights
+                </dd>
               </div>
               <div className="flex justify-between gap-4">
                 <dt className="text-muted-foreground">Availability</dt>
@@ -179,28 +184,31 @@ function PackageDetail() {
                 <dd className="text-right">{pkg.transport}</dd>
               </div>
             </dl>
-
-            <div className="mt-6 space-y-3">
-              <Button asChild variant="gold" size="lg" className="w-full">
-                <Link to="/custom-safari">Request this safari</Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="w-full">
-                <Link to="/contact">Ask a question</Link>
-              </Button>
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-5">
+            <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-5">
               {dests.map((d) => (
-                <Badge key={d.slug} variant="secondary" className="font-normal">
-                  <Link to="/destinations/$slug" params={{ slug: d.slug }}>
+                <Link key={d.slug} to="/destinations/$slug" params={{ slug: d.slug }}>
+                  <Badge variant="secondary" className="font-normal hover:bg-accent/20">
                     {d.name}
-                  </Link>
-                </Badge>
+                  </Badge>
+                </Link>
               ))}
             </div>
           </div>
         </aside>
       </section>
+
+      {related.length ? (
+        <section className="bg-sand py-16">
+          <div className="container-page">
+            <SectionHeading eyebrow="Similar journeys" title="You might also like" />
+            <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {related.map((p) => (
+                <PackageCard key={p.slug} pkg={p} />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
     </>
   );
 }

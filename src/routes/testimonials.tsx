@@ -52,9 +52,13 @@ function TestimonialsPage() {
           ))}
         </div>
         <div className="mt-12 text-center">
-          <p className="text-muted-foreground">Travelled with us? We would love to hear about it.</p>
+          <p className="text-muted-foreground">
+            Travelled with us? We would love to hear about it.
+          </p>
           <Button asChild variant="gold" className="mt-4">
-            <Link to="/contact">Share your story</Link>
+            <Link to="/contact" search={{ subject: "My Berakah trip story" }}>
+              Share your story
+            </Link>
           </Button>
         </div>
       </section>

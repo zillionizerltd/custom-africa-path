@@ -4,6 +4,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/site/Section";
 import { siteContentQueryOptions } from "@/lib/content-query";
+import { shortDate } from "@/lib/format";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ context, params }) => {
@@ -61,7 +62,7 @@ function BlogPost() {
   return (
     <>
       <PageHero
-        eyebrow={`${post.category} · ${post.readMinutes} min read`}
+        eyebrow={`${post.category} · ${shortDate(post.date)} · ${post.readMinutes} min read`}
         title={post.title}
         description={post.excerpt}
         image={post.image}

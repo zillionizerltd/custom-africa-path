@@ -1,48 +1,52 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EmptyState, Panel, StatusBadge, shortDate } from "@/components/dashboard/Shell";
-import { makeReference } from "@/lib/reference";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmptyState, PageTitle, Panel, StatusBadge } from "@/components/dashboard/Shell";
+import { shortDate } from "@/lib/format";
+import { countryNames } from "@/lib/quote";
+import { leadSource, leadSourceLabel, type LeadSource } from "@/lib/reference";
 
 export const Route = createFileRoute("/_authenticated/admin/requests")({
   component: AdminRequests,
 });
 
 const statuses = ["new", "reviewing", "quoted", "converted", "declined"] as const;
+type Status = (typeof statuses)[number];
+type SourceFilter = "all" | Exclude<LeadSource, "newsletter">;
 
 function AdminRequests() {
   const qc = useQueryClient();
+  const [source, setSource] = useState<SourceFilter>("all");
+  const [status, setStatus] = useState<"all" | Status>("all");
 
   const requests = useQuery({
     queryKey: ["admin-requests"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("safari_requests")
-        .select("*")
+        .select("*, quotes(id, reference, status)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
-  const setStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: (typeof statuses)[number] }) => {
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: Status }) => {
       const { error } = await supabase.from("safari_requests").update({ status }).eq("id", id);
       if (error) throw error;
     },
@@ -53,145 +57,191 @@ function AdminRequests() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const all = requests.data ?? [];
+  const leads = all.filter((r) => leadSource(r.reference) !== "newsletter");
+  const count = (s: SourceFilter) =>
+    s === "all" ? leads.length : leads.filter((r) => leadSource(r.reference) === s).length;
+  const visible = leads.filter(
+    (r) =>
+      (source === "all" || leadSource(r.reference) === source) &&
+      (status === "all" || r.status === status),
+  );
+
+  const subscribers = [
+    ...new Map(
+      all
+        .filter((r) => leadSource(r.reference) === "newsletter")
+        .map((r) => [r.email.toLowerCase(), r] as const),
+    ).values(),
+  ];
+
+  const copyEmails = () => {
+    navigator.clipboard.writeText(subscribers.map((s) => s.email).join(", ")).then(
+      () => toast.success(`Copied ${subscribers.length} email addresses`),
+      () => toast.error("Couldn't access the clipboard"),
+    );
+  };
+
   return (
     <div className="mt-8 space-y-8">
-      <div>
-        <p className="eyebrow">Requests</p>
-        <h1 className="mt-2 font-display text-3xl font-semibold text-foreground">Safari requests</h1>
-      </div>
+      <PageTitle
+        eyebrow="Requests"
+        title="Leads & safari requests"
+        description="Every enquiry from the safari builder and the contact form. Build a quote straight from a request."
+      />
 
-      <Panel title="All requests" description="Every enquiry from the site and the safari builder.">
-        {requests.data?.length ? (
+      <Panel
+        title="Leads"
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Tabs value={source} onValueChange={(v) => setSource(v as SourceFilter)}>
+              <TabsList>
+                <TabsTrigger value="all">All ({count("all")})</TabsTrigger>
+                <TabsTrigger value="builder">Builder ({count("builder")})</TabsTrigger>
+                <TabsTrigger value="enquiry">Enquiries ({count("enquiry")})</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Select value={status} onValueChange={(v) => setStatus(v as "all" | Status)}>
+              <SelectTrigger className="h-9 w-36" aria-label="Filter by status">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {statuses.map((s) => (
+                  <SelectItem key={s} value={s} className="capitalize">
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        }
+      >
+        {requests.isLoading ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">Loading requests…</p>
+        ) : visible.length ? (
           <ul className="divide-y divide-border">
-            {requests.data.map((r) => (
-              <li key={r.id} className="flex flex-wrap items-start justify-between gap-4 py-4">
-                <div className="max-w-2xl">
-                  <p className="font-medium text-foreground">
-                    {r.reference} · {r.full_name} · {r.email}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {r.destination_slugs.join(", ") || "Destination TBC"} · {shortDate(r.start_date)} →{" "}
-                    {shortDate(r.end_date)} · {r.adults} adults{r.children ? `, ${r.children} children` : ""} ·{" "}
-                    {r.budget_range ?? "budget TBC"} · {r.accommodation_level ?? "level TBC"}
-                  </p>
-                  {r.interests?.length ? (
-                    <p className="text-sm text-muted-foreground">Interests: {r.interests.join(", ")}</p>
-                  ) : null}
-                  {r.notes ? <p className="mt-1 text-sm text-muted-foreground">“{r.notes}”</p> : null}
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <StatusBadge status={r.status} />
-                  <Select
-                    value={r.status}
-                    onValueChange={(v) => setStatus.mutate({ id: r.id, status: v as (typeof statuses)[number] })}
-                  >
-                    <SelectTrigger className="w-36">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {statuses.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <NewQuoteDialog
-                    requestId={r.id}
-                    userId={r.user_id}
-                    defaultTitle={`${r.destination_slugs.join(" & ") || "Custom"} safari for ${r.full_name}`}
-                  />
-                </div>
+            {visible.map((r) => {
+              const kind = leadSource(r.reference);
+              const quote = r.quotes[0];
+              return (
+                <li key={r.id} className="flex flex-wrap items-start justify-between gap-4 py-5">
+                  <div className="min-w-0 max-w-2xl space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline" className="font-normal">
+                        {leadSourceLabel[kind]}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {r.reference} · received {shortDate(r.created_at)}
+                      </span>
+                    </div>
+                    <p className="font-medium text-foreground">{r.full_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      <a href={`mailto:${r.email}`} className="hover:text-primary hover:underline">
+                        {r.email}
+                      </a>
+                      {r.phone ? (
+                        <>
+                          {" · "}
+                          <a
+                            href={`tel:${r.phone.replace(/\s/g, "")}`}
+                            className="hover:text-primary hover:underline"
+                          >
+                            {r.phone}
+                          </a>
+                        </>
+                      ) : null}
+                      {r.country ? ` · ${r.country}` : ""}
+                    </p>
+                    {kind === "builder" ? (
+                      <>
+                        <p className="text-sm text-muted-foreground">
+                          {countryNames(r.destination_slugs) || "Destination TBC"} ·{" "}
+                          {shortDate(r.start_date)} → {shortDate(r.end_date)} · {r.adults} adults
+                          {r.children ? `, ${r.children} children` : ""}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {r.budget_range ? `${r.budget_range} pp` : "Budget TBC"} ·{" "}
+                          {r.accommodation_level ?? "Level TBC"}
+                          {r.transport.length ? ` · ${r.transport.join(", ")}` : ""}
+                        </p>
+                        {r.interests.length ? (
+                          <p className="text-sm text-muted-foreground">
+                            Interests: {r.interests.join(", ")}
+                          </p>
+                        ) : null}
+                      </>
+                    ) : null}
+                    {r.notes ? (
+                      <p className="mt-2 whitespace-pre-line rounded-lg bg-muted/60 px-3 py-2 text-sm text-foreground/85">
+                        {r.notes}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status={r.status} />
+                    <Select
+                      value={r.status}
+                      onValueChange={(v) => updateStatus.mutate({ id: r.id, status: v as Status })}
+                    >
+                      <SelectTrigger className="w-36" aria-label={`Status for ${r.reference}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statuses.map((s) => (
+                          <SelectItem key={s} value={s} className="capitalize">
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {quote ? (
+                      <Button asChild size="sm" variant="outline">
+                        <Link to="/admin/quote-builder" search={{ quote: quote.id }}>
+                          Open {quote.reference}
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button asChild size="sm" variant="gold">
+                        <Link to="/admin/quote-builder" search={{ request: r.id }}>
+                          Build quote
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <EmptyState message="No requests match these filters." />
+        )}
+      </Panel>
+
+      <Panel
+        title="Newsletter subscribers"
+        description="Sign-ups from the website footer, one row per email address."
+        actions={
+          subscribers.length ? (
+            <Button size="sm" variant="outline" onClick={copyEmails}>
+              <Copy className="size-4" /> Copy all emails
+            </Button>
+          ) : null
+        }
+      >
+        {subscribers.length ? (
+          <ul className="flex flex-wrap gap-2">
+            {subscribers.map((s) => (
+              <li key={s.id} className="rounded-full border border-border px-3 py-1 text-sm">
+                {s.email}{" "}
+                <span className="text-xs text-muted-foreground">· {shortDate(s.created_at)}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <EmptyState message="No requests yet." />
+          <EmptyState message="No subscribers yet." />
         )}
       </Panel>
     </div>
-  );
-}
-
-function NewQuoteDialog({
-  requestId,
-  userId,
-  defaultTitle,
-}: {
-  requestId: string;
-  userId: string | null;
-  defaultTitle: string;
-}) {
-  const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState(defaultTitle);
-  const [summary, setSummary] = useState("");
-  const [total, setTotal] = useState("");
-  const [validUntil, setValidUntil] = useState("");
-
-  const create = useMutation({
-    mutationFn: async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      const { error } = await supabase.from("quotes").insert({
-        reference: makeReference("QT"),
-        request_id: requestId,
-        user_id: userId,
-        title,
-        summary,
-        total_amount: Number(total || 0),
-        valid_until: validUntil || null,
-        status: "sent",
-        created_by: auth.user?.id ?? null,
-      });
-      if (error) throw error;
-      await supabase.from("safari_requests").update({ status: "quoted" }).eq("id", requestId);
-    },
-    onSuccess: () => {
-      toast.success("Quote created and sent");
-      setOpen(false);
-      void qc.invalidateQueries({ queryKey: ["admin-requests"] });
-      void qc.invalidateQueries({ queryKey: ["admin-quotes"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="gold">
-          Create quote
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>New quote</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="q-title">Title</Label>
-            <Input id="q-title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="q-summary">Summary</Label>
-            <Textarea id="q-summary" rows={4} value={summary} onChange={(e) => setSummary(e.target.value)} />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="q-total">Total (USD)</Label>
-              <Input id="q-total" type="number" value={total} onChange={(e) => setTotal(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="q-valid">Valid until</Label>
-              <Input id="q-valid" type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
-            </div>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="gold" onClick={() => create.mutate()} disabled={create.isPending}>
-            {create.isPending ? "Saving…" : "Send quote"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }

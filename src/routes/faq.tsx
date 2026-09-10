@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import {
   Accordion,
@@ -6,7 +6,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import { PageHero } from "@/components/site/Section";
+import { company } from "@/data/site";
 import heroImage from "@/assets/dest-tanzania.jpg";
 
 const faqs = [
@@ -54,7 +56,10 @@ export const Route = createFileRoute("/faq")({
           "Answers on booking, gorilla permit costs, payments, date changes, insurance, vaccinations and travelling with children in East Africa.",
       },
       { property: "og:title", content: "Safari FAQ — Berakah Tours & Travel" },
-      { property: "og:description", content: "Booking, permits, payments and practicalities answered." },
+      {
+        property: "og:description",
+        content: "Booking, permits, payments and practicalities answered.",
+      },
       { property: "og:url", content: "/faq" },
     ],
     links: [{ rel: "canonical", href: "/faq" }],
@@ -95,6 +100,29 @@ function FaqPage() {
               </AccordionItem>
             ))}
           </Accordion>
+
+          <div className="surface-ink mt-12 flex flex-col items-start gap-5 rounded-2xl p-8 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-2xl text-ink-foreground">Still have a question?</h2>
+              <p className="mt-2 text-sm text-ink-foreground/75">
+                A consultant answers directly — within one working day, usually much sooner.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild variant="gold">
+                <Link to="/contact">Ask a consultant</Link>
+              </Button>
+              <Button asChild variant="onInk">
+                <a
+                  href={`https://wa.me/${company.whatsapp.replace(/\D/g, "")}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  WhatsApp us
+                </a>
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
     </>

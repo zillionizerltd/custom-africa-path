@@ -18,6 +18,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CustomSafariRouteImport } from './routes/custom-safari'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TestimonialsRouteImport } from './routes/testimonials'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
@@ -33,6 +34,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin/bookings'
 import { Route as AuthenticatedAdminContentRouteImport } from './routes/_authenticated/admin/content'
 import { Route as AuthenticatedAdminOperationsRouteImport } from './routes/_authenticated/admin/operations'
+import { Route as AuthenticatedAdminQuoteBuilderRouteImport } from './routes/_authenticated/admin/quote-builder'
 import { Route as AuthenticatedAdminQuotesRouteImport } from './routes/_authenticated/admin/quotes'
 import { Route as AuthenticatedAdminRequestsRouteImport } from './routes/_authenticated/admin/requests'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
@@ -79,6 +81,11 @@ const FaqRoute = FaqRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -159,6 +166,12 @@ const AuthenticatedAdminOperationsRoute =
     path: '/operations',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminQuoteBuilderRoute =
+  AuthenticatedAdminQuoteBuilderRouteImport.update({
+    id: '/quote-builder',
+    path: '/quote-builder',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminQuotesRoute =
   AuthenticatedAdminQuotesRouteImport.update({
     id: '/quotes',
@@ -186,6 +199,7 @@ export interface FileRoutesByFullPath {
   '/custom-safari': typeof CustomSafariRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
@@ -200,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/operations': typeof AuthenticatedAdminOperationsRoute
+  '/admin/quote-builder': typeof AuthenticatedAdminQuoteBuilderRoute
   '/admin/quotes': typeof AuthenticatedAdminQuotesRoute
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -214,6 +229,7 @@ export interface FileRoutesByTo {
   '/custom-safari': typeof CustomSafariRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -227,6 +243,7 @@ export interface FileRoutesByTo {
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/operations': typeof AuthenticatedAdminOperationsRoute
+  '/admin/quote-builder': typeof AuthenticatedAdminQuoteBuilderRoute
   '/admin/quotes': typeof AuthenticatedAdminQuotesRoute
   '/admin/requests': typeof AuthenticatedAdminRequestsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -243,6 +260,7 @@ export interface FileRoutesById {
   '/custom-safari': typeof CustomSafariRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/terms': typeof TermsRoute
   '/testimonials': typeof TestimonialsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
@@ -257,6 +275,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRoute
   '/_authenticated/admin/content': typeof AuthenticatedAdminContentRoute
   '/_authenticated/admin/operations': typeof AuthenticatedAdminOperationsRoute
+  '/_authenticated/admin/quote-builder': typeof AuthenticatedAdminQuoteBuilderRoute
   '/_authenticated/admin/quotes': typeof AuthenticatedAdminQuotesRoute
   '/_authenticated/admin/requests': typeof AuthenticatedAdminRequestsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -273,6 +292,7 @@ export interface FileRouteTypes {
     | '/custom-safari'
     | '/faq'
     | '/privacy'
+    | '/reset-password'
     | '/terms'
     | '/testimonials'
     | '/admin'
@@ -287,6 +307,7 @@ export interface FileRouteTypes {
     | '/admin/bookings'
     | '/admin/content'
     | '/admin/operations'
+    | '/admin/quote-builder'
     | '/admin/quotes'
     | '/admin/requests'
     | '/admin/users'
@@ -301,6 +322,7 @@ export interface FileRouteTypes {
     | '/custom-safari'
     | '/faq'
     | '/privacy'
+    | '/reset-password'
     | '/terms'
     | '/testimonials'
     | '/dashboard'
@@ -314,6 +336,7 @@ export interface FileRouteTypes {
     | '/admin/bookings'
     | '/admin/content'
     | '/admin/operations'
+    | '/admin/quote-builder'
     | '/admin/quotes'
     | '/admin/requests'
     | '/admin/users'
@@ -329,6 +352,7 @@ export interface FileRouteTypes {
     | '/custom-safari'
     | '/faq'
     | '/privacy'
+    | '/reset-password'
     | '/terms'
     | '/testimonials'
     | '/_authenticated/admin'
@@ -343,6 +367,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/bookings'
     | '/_authenticated/admin/content'
     | '/_authenticated/admin/operations'
+    | '/_authenticated/admin/quote-builder'
     | '/_authenticated/admin/quotes'
     | '/_authenticated/admin/requests'
     | '/_authenticated/admin/users'
@@ -359,6 +384,7 @@ export interface RootRouteChildren {
   CustomSafariRoute: typeof CustomSafariRoute
   FaqRoute: typeof FaqRoute
   PrivacyRoute: typeof PrivacyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   TermsRoute: typeof TermsRoute
   TestimonialsRoute: typeof TestimonialsRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -432,6 +458,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -539,6 +572,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOperationsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/quote-builder': {
+      id: '/_authenticated/admin/quote-builder'
+      path: '/quote-builder'
+      fullPath: '/admin/quote-builder'
+      preLoaderRoute: typeof AuthenticatedAdminQuoteBuilderRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/quotes': {
       id: '/_authenticated/admin/quotes'
       path: '/quotes'
@@ -567,6 +607,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminBookingsRoute: typeof AuthenticatedAdminBookingsRoute
   AuthenticatedAdminContentRoute: typeof AuthenticatedAdminContentRoute
   AuthenticatedAdminOperationsRoute: typeof AuthenticatedAdminOperationsRoute
+  AuthenticatedAdminQuoteBuilderRoute: typeof AuthenticatedAdminQuoteBuilderRoute
   AuthenticatedAdminQuotesRoute: typeof AuthenticatedAdminQuotesRoute
   AuthenticatedAdminRequestsRoute: typeof AuthenticatedAdminRequestsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -578,6 +619,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminBookingsRoute: AuthenticatedAdminBookingsRoute,
     AuthenticatedAdminContentRoute: AuthenticatedAdminContentRoute,
     AuthenticatedAdminOperationsRoute: AuthenticatedAdminOperationsRoute,
+    AuthenticatedAdminQuoteBuilderRoute: AuthenticatedAdminQuoteBuilderRoute,
     AuthenticatedAdminQuotesRoute: AuthenticatedAdminQuotesRoute,
     AuthenticatedAdminRequestsRoute: AuthenticatedAdminRequestsRoute,
     AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
@@ -614,6 +656,7 @@ const rootRouteChildren: RootRouteChildren = {
   CustomSafariRoute: CustomSafariRoute,
   FaqRoute: FaqRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   TermsRoute: TermsRoute,
   TestimonialsRoute: TestimonialsRoute,
   BlogSlugRoute: BlogSlugRoute,

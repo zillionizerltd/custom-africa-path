@@ -23,7 +23,9 @@ export const Route = createFileRoute("/destinations/$slug")({
   },
   head: ({ params, loaderData }) => {
     if (!loaderData) {
-      return { meta: [{ title: "Destination unavailable" }, { name: "robots", content: "noindex" }] };
+      return {
+        meta: [{ title: "Destination unavailable" }, { name: "robots", content: "noindex" }],
+      };
     }
     const d = loaderData.destination;
     const title = `${d.name} Safaris & Travel Guide — Berakah Tours`;
@@ -46,7 +48,9 @@ export const Route = createFileRoute("/destinations/$slug")({
     </div>
   ),
   notFoundComponent: () => (
-    <div className="container-page py-20 text-center text-muted-foreground">Destination not found.</div>
+    <div className="container-page py-20 text-center text-muted-foreground">
+      Destination not found.
+    </div>
   ),
 });
 
@@ -103,15 +107,19 @@ function DestinationDetail() {
             ))}
           </ul>
 
-          <h3 className="mt-10 text-xl">Frequently asked</h3>
-          <Accordion type="single" collapsible className="mt-3">
-            {d.faq.map((f) => (
-              <AccordionItem key={f.q} value={f.q}>
-                <AccordionTrigger className="text-left">{f.q}</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          {d.faq.length ? (
+            <>
+              <h3 className="mt-10 text-xl">Frequently asked</h3>
+              <Accordion type="single" collapsible className="mt-3">
+                {d.faq.map((f) => (
+                  <AccordionItem key={f.q} value={f.q}>
+                    <AccordionTrigger className="text-left">{f.q}</AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </>
+          ) : null}
         </div>
 
         <aside className="space-y-6">
@@ -131,7 +139,9 @@ function DestinationDetail() {
               Send us your dates and interests and we will design a private itinerary.
             </p>
             <Button asChild variant="gold" className="mt-5 w-full">
-              <Link to="/custom-safari">Plan My Safari</Link>
+              <Link to="/custom-safari" search={{ destination: d.slug }}>
+                Plan My Safari
+              </Link>
             </Button>
           </div>
         </aside>

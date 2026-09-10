@@ -2,7 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
-import { EmptyState, Panel, StatusBadge, money, shortDate } from "@/components/dashboard/Shell";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState, PageTitle, Panel, StatCard, StatusBadge } from "@/components/dashboard/Shell";
+import { money, shortDate } from "@/lib/format";
+import { countryNames } from "@/lib/quote";
+import { leadSource, leadSourceLabel } from "@/lib/reference";
+import { balanceAlert, balanceOf, timingLabel, tripTiming } from "@/lib/trip";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminOverview,
@@ -14,9 +20,14 @@ function AdminOverview() {
     queryFn: async () => {
       const [requests, quotes, bookings, payments] = await Promise.all([
         supabase.from("safari_requests").select("*").order("created_at", { ascending: false }),
-        supabase.from("quotes").select("id,status,total_amount,currency"),
-        supabase.from("bookings").select("id,status,total_amount,amount_paid,currency"),
-        supabase.from("payments").select("amount,currency,status"),
+        supabase.from("quotes").select("id,status"),
+        supabase
+          .from("bookings")
+          .select(
+            "id,reference,title,lead_name,start_date,end_date,travelers,status,total_amount,amount_paid,currency",
+          )
+          .order("start_date", { ascending: true }),
+        supabase.from("payments").select("amount,status"),
       ]);
       return {
         requests: requests.data ?? [],
@@ -28,58 +39,130 @@ function AdminOverview() {
   });
 
   const d = stats.data;
-  const openRequests = d?.requests.filter((r) => r.status === "new" || r.status === "reviewing").length ?? 0;
+  const leads = d?.requests.filter((r) => leadSource(r.reference) !== "newsletter") ?? [];
+  const openRequests = leads.filter((r) => r.status === "new" || r.status === "reviewing").length;
   const pendingQuotes = d?.quotes.filter((q) => q.status === "sent").length ?? 0;
-  const activeBookings = d?.bookings.filter((b) => b.status === "confirmed" || b.status === "in_progress").length ?? 0;
-  const collected = d?.payments.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.amount), 0) ?? 0;
+  const activeBookings =
+    d?.bookings.filter((b) => b.status === "confirmed" || b.status === "in_progress").length ?? 0;
+  const collected =
+    d?.payments.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.amount), 0) ?? 0;
 
-  const cards = [
-    { label: "Open requests", value: String(openRequests) },
-    { label: "Quotes awaiting reply", value: String(pendingQuotes) },
-    { label: "Active bookings", value: String(activeBookings) },
-    { label: "Payments collected", value: money(collected) },
-  ];
+  const tracked = (d?.bookings ?? [])
+    .filter((b) => b.status !== "cancelled")
+    .map((b) => ({
+      ...b,
+      balance: balanceOf(b.total_amount, b.amount_paid),
+      timing: tripTiming(b.start_date, b.end_date),
+    }));
+  const outstanding = tracked.reduce((s, b) => s + b.balance, 0);
+  const departures = tracked.filter(
+    (b) =>
+      b.status !== "completed" &&
+      (b.timing.kind === "ongoing" || (b.timing.kind === "upcoming" && b.timing.days <= 60)),
+  );
+  const departingSoon = departures.filter(
+    (b) => b.timing.kind === "upcoming" && b.timing.days <= 30,
+  );
 
   return (
     <div className="mt-8 space-y-8">
-      <div>
-        <p className="eyebrow">Operations</p>
-        <h1 className="mt-2 font-display text-3xl font-semibold text-foreground">Dashboard overview</h1>
-      </div>
+      <PageTitle eyebrow="Operations" title="Dashboard overview" />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map((c) => (
-          <div key={c.label} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <p className="text-sm text-muted-foreground">{c.label}</p>
-            <p className="mt-2 font-display text-3xl font-semibold text-foreground">{c.value}</p>
-          </div>
-        ))}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard label="Open requests" value={String(openRequests)} hint="New or under review" />
+        <StatCard label="Quotes awaiting reply" value={String(pendingQuotes)} />
+        <StatCard
+          label="Active bookings"
+          value={String(activeBookings)}
+          hint="Confirmed or on trip"
+        />
+        <StatCard label="Payments collected" value={money(collected)} />
+        <StatCard
+          label="Outstanding balance"
+          value={money(outstanding)}
+          hint="Across non-cancelled bookings"
+        />
+        <StatCard label="Departing in 30 days" value={String(departingSoon.length)} />
       </div>
 
       <Panel
-        title="Latest safari requests"
+        title="Upcoming departures"
+        description="On trip now or starting within 60 days."
+        actions={
+          <Link to="/admin/bookings" className="text-sm font-medium text-primary hover:underline">
+            Open trip tracker
+          </Link>
+        }
+      >
+        {departures.length ? (
+          <ul className="divide-y divide-border">
+            {departures.map((b) => {
+              const alert = balanceAlert(b.timing, b.balance);
+              return (
+                <li key={b.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <div>
+                    <p className="font-medium text-foreground">
+                      {b.reference} · {b.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {b.lead_name || "—"} · {shortDate(b.start_date)} → {shortDate(b.end_date)} ·{" "}
+                      {b.travelers} pax
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <Badge variant="outline" className="font-normal tabular-nums">
+                      {timingLabel(b.timing)}
+                    </Badge>
+                    <span
+                      className={cn(
+                        "tabular-nums",
+                        alert === "overdue" && "font-semibold text-destructive",
+                        alert === "due-soon" && "font-semibold text-amber-700",
+                        !alert && "text-muted-foreground",
+                      )}
+                    >
+                      {b.balance > 0 ? `${money(b.balance, b.currency)} due` : "Paid in full"}
+                    </span>
+                    <StatusBadge status={b.status} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <EmptyState message="No departures in the next 60 days." />
+        )}
+      </Panel>
+
+      <Panel
+        title="Latest leads"
         actions={
           <Link to="/admin/requests" className="text-sm font-medium text-primary hover:underline">
             View all
           </Link>
         }
       >
-        {d?.requests.length ? (
+        {leads.length ? (
           <ul className="divide-y divide-border">
-            {d.requests.slice(0, 6).map((r) => (
-              <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                <div>
-                  <p className="font-medium text-foreground">
-                    {r.reference} · {r.full_name}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {r.destination_slugs.join(", ") || "Destination TBC"} · {shortDate(r.start_date)} ·{" "}
-                    {r.adults + (r.children ?? 0)} travellers
-                  </p>
-                </div>
-                <StatusBadge status={r.status} />
-              </li>
-            ))}
+            {leads.slice(0, 6).map((r) => {
+              const source = leadSource(r.reference);
+              return (
+                <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                  <div>
+                    <p className="font-medium text-foreground">
+                      {r.reference} · {r.full_name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {leadSourceLabel[source]} ·{" "}
+                      {source === "builder"
+                        ? `${countryNames(r.destination_slugs) || "Destination TBC"} · ${shortDate(r.start_date)} · ${r.adults + (r.children ?? 0)} travellers`
+                        : shortDate(r.created_at)}
+                    </p>
+                  </div>
+                  <StatusBadge status={r.status} />
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <EmptyState message="No requests yet." />

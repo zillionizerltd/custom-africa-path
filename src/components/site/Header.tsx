@@ -5,8 +5,7 @@ import { Menu, Phone, User, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { company } from "@/data/site";
 import { useAuth, homeForRoles } from "@/hooks/useAuth";
-import logoMark from "@/assets/logo-mark.png.asset.json";
-import logoWordmark from "@/assets/logo-wordmark.png.asset.json";
+import logoMark from "@/assets/logo-mark.png";
 
 const nav = [
   { to: "/destinations", label: "Destinations" },
@@ -26,8 +25,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/85 backdrop-blur-md">
       <div className="container-page flex h-18 items-center justify-between gap-6 py-3">
-        <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-          <img src={logoMark.url} alt="" width={40} height={40} className="h-9 w-9 object-contain" />
+        <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
+          <img src={logoMark} alt="" width={44} height={44} className="size-11 object-contain" />
           <span className="flex flex-col leading-none">
             <span className="font-display text-lg font-semibold tracking-tight">Berakah</span>
             <span className="text-[0.62rem] font-medium uppercase tracking-[0.22em] text-muted-foreground">
@@ -41,8 +40,7 @@ export function Header() {
             <Link
               key={item.to}
               to={item.to}
-              className="text-sm font-medium text-foreground/75 transition-colors hover:text-foreground"
-              activeProps={{ className: "text-foreground" }}
+              className="relative py-1 text-sm font-medium text-foreground/70 transition-colors after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:origin-left after:scale-x-0 after:rounded-full after:bg-accent after:transition-transform hover:text-foreground data-[status=active]:text-foreground data-[status=active]:after:scale-x-100"
             >
               {item.label}
             </Link>
@@ -57,12 +55,12 @@ export function Header() {
             <Phone className="size-4" />
             {company.phone}
           </a>
-          <Button asChild variant="outline">
+          {/* <Button asChild variant="outline">
             <Link to={accountTo}>
               <User className="size-4" />
               {accountLabel}
             </Link>
-          </Button>
+          </Button> */}
           <Button asChild variant="gold">
             <Link to="/custom-safari">Plan My Safari</Link>
           </Button>
@@ -71,7 +69,9 @@ export function Header() {
         <button
           type="button"
           aria-label={open ? "Close menu" : "Open menu"}
-          className="lg:hidden"
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          className="-mr-2 rounded-md p-2 lg:hidden"
           onClick={() => setOpen((v) => !v)}
         >
           {open ? <X className="size-6" /> : <Menu className="size-6" />}
@@ -79,14 +79,14 @@ export function Header() {
       </div>
 
       {open ? (
-        <div className="border-t border-border bg-background lg:hidden">
+        <div id="mobile-nav" className="border-t border-border bg-background lg:hidden">
           <nav className="container-page flex flex-col py-3">
             {nav.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 onClick={() => setOpen(false)}
-                className="border-b border-border/60 py-3 text-sm font-medium last:border-0"
+                className="border-b border-border/60 py-3 text-sm font-medium last:border-0 data-[status=active]:text-primary data-[status=active]:font-semibold"
               >
                 {item.label}
               </Link>
@@ -103,14 +103,6 @@ export function Header() {
                 Plan My Safari
               </Link>
             </Button>
-            <img
-              src={logoWordmark.url}
-              alt=""
-              width={200}
-              height={60}
-              loading="lazy"
-              className="mt-5 h-8 w-auto self-start object-contain opacity-70"
-            />
           </nav>
         </div>
       ) : null}

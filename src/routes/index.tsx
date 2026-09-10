@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { DestinationCard, PackageCard, TestimonialCard } from "@/components/site/Cards";
 import { SectionHeading } from "@/components/site/Section";
+import { atAGlance } from "@/data/site";
 import { siteContentQueryOptions } from "@/lib/content-query";
 import heroImage from "@/assets/hero-gorilla.jpg";
 import ctaImage from "@/assets/cta-safari.jpg";
@@ -59,22 +60,55 @@ export const Route = createFileRoute("/")({
 });
 
 const steps = [
-  { icon: Compass, title: "Tell us your wishes", text: "Share dates, interests, group size and budget in the safari builder." },
-  { icon: MessageSquareQuote, title: "We design & quote", text: "A consultant builds a day-by-day itinerary with a transparent cost breakdown." },
-  { icon: CalendarCheck, title: "Refine and confirm", text: "Adjust lodges, pace or activities until it is right, then pay a deposit." },
-  { icon: Sparkles, title: "Travel with us", text: "Permits, guides, vehicles and lodges handled — you just show up." },
+  {
+    icon: Compass,
+    title: "Tell us your wishes",
+    text: "Share dates, interests, group size and budget in the safari builder.",
+  },
+  {
+    icon: MessageSquareQuote,
+    title: "We design & quote",
+    text: "A consultant builds a day-by-day itinerary with a transparent cost breakdown.",
+  },
+  {
+    icon: CalendarCheck,
+    title: "Refine and confirm",
+    text: "Adjust lodges, pace or activities until it is right, then pay a deposit.",
+  },
+  {
+    icon: Sparkles,
+    title: "Travel with us",
+    text: "Permits, guides, vehicles and lodges handled — you just show up.",
+  },
 ];
 
 const reasons = [
-  { icon: BadgeCheck, title: "Licensed Rwandan operator", text: "RDB-registered, working with the national park authorities in five countries." },
-  { icon: ShieldCheck, title: "Permits secured first", text: "We hold gorilla permits the day your deposit lands — no last-minute surprises." },
-  { icon: HeartHandshake, title: "Local guides, local benefit", text: "Our driver-guides and porters are hired from communities around the parks." },
-  { icon: Sparkles, title: "Nothing off the shelf", text: "Every itinerary is written for one group. Fixed packages are only a starting point." },
+  {
+    icon: BadgeCheck,
+    title: "Licensed Rwandan operator",
+    text: "RDB-registered, working with the national park authorities in five countries.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Permits secured first",
+    text: "We hold gorilla permits the day your deposit lands — no last-minute surprises.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "Local guides, local benefit",
+    text: "Our driver-guides and porters are hired from communities around the parks.",
+  },
+  {
+    icon: Sparkles,
+    title: "Nothing off the shelf",
+    text: "Every itinerary is written for one group. Fixed packages are only a starting point.",
+  },
 ];
 
 function HomePage() {
   const { data } = useSuspenseQuery(siteContentQueryOptions);
   const { destinations, packages, activities, posts: blogPosts, testimonials } = data;
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [destination, setDestination] = useState("all");
   const featured = packages.filter((p) => p.featured);
@@ -93,7 +127,9 @@ function HomePage() {
         <div className="image-overlay absolute inset-0 -z-10" />
         <div className="container-page flex min-h-[38rem] flex-col justify-end py-20 md:min-h-[44rem]">
           <p className="eyebrow text-accent">Rwanda · Uganda · Kenya · Tanzania · Congo</p>
-          <h1 className="mt-4 max-w-3xl text-5xl text-ink-foreground md:text-7xl">Your Safari. Your Way.</h1>
+          <h1 className="mt-4 max-w-3xl text-5xl text-ink-foreground md:text-7xl">
+            Your Safari. Your Way.
+          </h1>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-foreground/80">
             Every safari is built around your wishes, interests, budget and travel style.
           </p>
@@ -112,7 +148,16 @@ function HomePage() {
       <section className="container-page -mt-10 relative z-10">
         <form
           className="grid gap-3 rounded-xl border border-border bg-card p-4 shadow-soft md:grid-cols-[1fr_14rem_auto]"
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={(e) => {
+            e.preventDefault();
+            void navigate({
+              to: "/safaris",
+              search: {
+                q: query.trim() || undefined,
+                destination: destination !== "all" ? destination : undefined,
+              },
+            });
+          }}
         >
           <div className="relative">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -137,19 +182,8 @@ function HomePage() {
               ))}
             </SelectContent>
           </Select>
-          <Button asChild variant="gold" size="lg" className="h-11">
-            <Link
-              to="/safaris"
-              search={
-                {
-                  ...(query ? { q: query } : {}),
-                  ...(destination !== "all" ? { destination } : {}),
-                } as { q?: string | undefined; destination?: string | undefined }
-              }
-            >
-
-              Search safaris
-            </Link>
+          <Button type="submit" variant="gold" size="lg" className="h-11">
+            Search safaris
           </Button>
         </form>
       </section>
@@ -200,7 +234,11 @@ function HomePage() {
 
       {/* Why Berakah */}
       <section className="container-page py-20">
-        <SectionHeading eyebrow="Why choose Berakah" title="Built around you, not around a brochure" align="center" />
+        <SectionHeading
+          eyebrow="Why choose Berakah"
+          title="Built around you, not around a brochure"
+          align="center"
+        />
         <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {reasons.map((r) => (
             <div key={r.title}>
@@ -212,6 +250,16 @@ function HomePage() {
             </div>
           ))}
         </div>
+        <dl className="mt-14 grid grid-cols-2 gap-y-8 rounded-2xl border border-border bg-card py-8 md:grid-cols-4 md:divide-x md:divide-border">
+          {atAGlance.map((s) => (
+            <div key={s.label} className="flex flex-col-reverse px-4 text-center">
+              <dt className="mt-1 text-sm text-muted-foreground">{s.label}</dt>
+              <dd className="font-display text-3xl font-semibold text-primary md:text-4xl">
+                {s.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
       {/* How it works */}

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth, homeForRoles } from "@/hooks/useAuth";
+import logoMark from "@/assets/logo-mark.png";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -69,6 +70,25 @@ function AuthPage() {
     }
   }
 
+  async function forgotPassword() {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      toast.error("Enter your email address above first.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Check your email", {
+      description: "We've sent a link to choose a new password.",
+    });
+  }
+
   async function google() {
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
@@ -79,6 +99,7 @@ function AuthPage() {
   return (
     <div className="container-page flex min-h-[70vh] items-center justify-center py-16">
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <img src={logoMark} alt="" width={56} height={56} className="mb-5 size-14" />
         <p className="eyebrow">Berakah account</p>
         <h1 className="mt-2 font-display text-3xl font-semibold text-foreground">Welcome back</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -87,8 +108,8 @@ function AuthPage() {
 
         {sent ? (
           <p className="mt-8 rounded-lg bg-secondary p-4 text-sm text-secondary-foreground">
-            We&apos;ve sent a confirmation link to <strong>{email}</strong>. Click it to activate your
-            account, then come back here to sign in.
+            We&apos;ve sent a confirmation link to <strong>{email}</strong>. Click it to activate
+            your account, then come back here to sign in.
           </p>
         ) : (
           <Tabs defaultValue="signin" className="mt-6">
@@ -105,10 +126,26 @@ function AuthPage() {
               <form onSubmit={signIn} className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <div className="flex items-center justify-between gap-3">
+                    <Label htmlFor="password">Password</Label>
+                    <button
+                      type="button"
+                      onClick={() => void forgotPassword()}
+                      disabled={busy}
+                      className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                   <Input
                     id="password"
                     type="password"
@@ -127,11 +164,22 @@ function AuthPage() {
               <form onSubmit={signUp} className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full name</Label>
-                  <Input id="name" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                  <Input
+                    id="name"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email2">Email</Label>
-                  <Input id="email2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input
+                    id="email2"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password2">Password</Label>

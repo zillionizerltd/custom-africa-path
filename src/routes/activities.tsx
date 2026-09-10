@@ -18,7 +18,10 @@ export const Route = createFileRoute("/activities")({
           "Gorilla trekking, game drives, cultural visits, photography safaris, hiking, city tours and beach escapes across East and Central Africa.",
       },
       { property: "og:title", content: "Safari Activities & Experiences — Berakah Tours" },
-      { property: "og:description", content: "Choose what you want to experience, we build the route." },
+      {
+        property: "og:description",
+        content: "Choose what you want to experience, we build the route.",
+      },
       { property: "og:url", content: "/activities" },
     ],
     links: [{ rel: "canonical", href: "/activities" }],

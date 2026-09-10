@@ -3,6 +3,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 
 import { PageHero } from "@/components/site/Section";
 import { siteContentQueryOptions } from "@/lib/content-query";
+import { shortDate } from "@/lib/format";
 import heroImage from "@/assets/dest-rwanda.jpg";
 
 export const Route = createFileRoute("/blog/")({
@@ -66,6 +67,9 @@ function BlogIndex() {
                 </p>
                 <h2 className="mt-2 text-lg leading-snug">{post.title}</h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{post.excerpt}</p>
+                <time dateTime={post.date} className="mt-4 block text-xs text-muted-foreground">
+                  {shortDate(post.date)}
+                </time>
               </div>
             </Link>
           ))}

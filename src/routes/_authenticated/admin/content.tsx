@@ -1,15 +1,68 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { EmptyState, Panel, money } from "@/components/dashboard/Shell";
+import { EmptyState, Panel } from "@/components/dashboard/Shell";
 
 export const Route = createFileRoute("/_authenticated/admin/content")({
   component: AdminContent,
 });
+
+/** Inline "from" price editor — permit and lodge rates change seasonally. */
+function PriceEditor({ id, price, currency }: { id: string; price: number; currency: string }) {
+  const qc = useQueryClient();
+  const [value, setValue] = useState(String(price));
+  const dirty = Number(value) !== price;
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const next = Number(value);
+      if (!Number.isFinite(next) || next <= 0) throw new Error("Enter a price above zero.");
+      const { error } = await supabase.from("packages").update({ price_from: next }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Price updated");
+      void qc.invalidateQueries({ queryKey: ["admin-content"] });
+      void qc.invalidateQueries({ queryKey: ["site-content"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <form
+      className="flex items-center gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        save.mutate();
+      }}
+    >
+      <Label htmlFor={`price-${id}`} className="text-xs text-muted-foreground">
+        From ({currency})
+      </Label>
+      <Input
+        id={`price-${id}`}
+        type="number"
+        min={1}
+        step={10}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className="h-8 w-28 text-right tabular-nums"
+      />
+      {dirty ? (
+        <Button type="submit" size="sm" variant="gold" disabled={save.isPending}>
+          Save
+        </Button>
+      ) : null}
+    </form>
+  );
+}
 
 type ContentTable = "destinations" | "packages" | "activities" | "blog_posts" | "testimonials";
 
@@ -46,7 +99,10 @@ function AdminContent() {
       id: string;
       values: { published?: boolean; featured?: boolean };
     }) => {
-      const { error } = await supabase.from(table).update(values as never).eq("id", id);
+      const { error } = await supabase
+        .from(table)
+        .update(values as never)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -62,7 +118,9 @@ function AdminContent() {
     <div className="mt-8 space-y-8">
       <div>
         <p className="eyebrow">Content</p>
-        <h1 className="mt-2 font-display text-3xl font-semibold text-foreground">Website content</h1>
+        <h1 className="mt-2 font-display text-3xl font-semibold text-foreground">
+          Website content
+        </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Everything the public site shows comes from here. Unpublish an item to hide it instantly.
         </p>
@@ -84,7 +142,11 @@ function AdminContent() {
                   <Switch
                     checked={item.published}
                     onCheckedChange={(v) =>
-                      update.mutate({ table: "destinations", id: item.id, values: { published: v } })
+                      update.mutate({
+                        table: "destinations",
+                        id: item.id,
+                        values: { published: v },
+                      })
                     }
                   />
                 </div>
@@ -104,10 +166,16 @@ function AdminContent() {
                 <div>
                   <p className="font-medium text-foreground">{item.title}</p>
                   <p className="text-sm text-muted-foreground">
-                    {item.days} days · from {money(item.price_from, item.currency)} · {item.category}
+                    {item.days} days · {item.category}
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
+                  <PriceEditor
+                    key={`${item.id}-${item.price_from}`}
+                    id={item.id}
+                    price={Number(item.price_from)}
+                    currency={item.currency}
+                  />
                   <div className="flex items-center gap-2">
                     <Label className="text-xs text-muted-foreground">Featured</Label>
                     <Switch
@@ -143,7 +211,9 @@ function AdminContent() {
                 <p className="font-medium text-foreground">{item.name}</p>
                 <Switch
                   checked={item.published}
-                  onCheckedChange={(v) => update.mutate({ table: "activities", id: item.id, values: { published: v } })}
+                  onCheckedChange={(v) =>
+                    update.mutate({ table: "activities", id: item.id, values: { published: v } })
+                  }
                 />
               </li>
             ))}
@@ -164,7 +234,9 @@ function AdminContent() {
                 </div>
                 <Switch
                   checked={item.published}
-                  onCheckedChange={(v) => update.mutate({ table: "blog_posts", id: item.id, values: { published: v } })}
+                  onCheckedChange={(v) =>
+                    update.mutate({ table: "blog_posts", id: item.id, values: { published: v } })
+                  }
                 />
               </li>
             ))}
